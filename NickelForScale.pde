@@ -357,6 +357,11 @@ void keyPressed() {
     case 'b':
       showBlobs = showBlobs ? false : true;
       break;
+    case 'd':
+      if(lines.size() > 0){
+        lines.remove(lines.size()-1);
+      }
+      break;
   }
 }
 

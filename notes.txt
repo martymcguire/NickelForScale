@@ -65,3 +65,18 @@ Things to do next
     * Invoke openscad to make STL
     * Show orig and custom STL side-by-side
     * Fire up RepG and print.
+
+---
+
+Saturday, Nov. 20, 2010
+=======================
+
+OpenSCAD Party
+--------------
+
+* `data/`
+    * `current_measurements.scad` - holds the current measurements
+    * `objects/`
+        * `<object-name>/`
+            * `<object-name>.scad`
+            * `<object-name>.stl` - example render
