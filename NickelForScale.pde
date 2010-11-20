@@ -12,6 +12,7 @@ int TEXT_H = 20;
 boolean showOrig = true;
 boolean showBlobs = true;
 boolean isDrawing = false;
+boolean isCapturing = true;
 // line drawing
 Point ls = new Point();
 Point le = new Point();
@@ -23,6 +24,7 @@ PImage orig_img;
 int w = 640;
 int h = 480;
 
+Capture cam;
 PFont font;
 
 float mm_per_px = 0;
@@ -43,9 +45,20 @@ void setupOpenCV(String imgFilename) {
    opencv.allocate(w,h);
 }
 
+void setupOpenCVcamera(){
+   String[] devices = Capture.list();
+   println(Capture.list());
+   cam = new Capture(this, w, h, devices[2]);
+   opencv = new OpenCV( this );
+   opencv.allocate(w,h);
+  
+}
+
+
 void setup() {
 
-    setupOpenCV("amy-tests/1nickel-hand-C-naturalLight-1.jpg");
+    setupOpenCVcamera();
+    //setupOpenCV("amy-tests/1nickel-hand-C-naturalLight-1.jpg");
 
     size( w+PADDING*2, h+INFO_H+PADDING*3 );
     font = loadFont( "SansSerif-18.vlw" );
@@ -53,14 +66,17 @@ void setup() {
 }
 
 void draw() {
-
+    cam.read();
+    opencv.copy(cam);
+    
     findBlobs();
     getPixelsPerMM();
     drawBlob(hand);
 
     background(0);
 
-    if(showOrig) { image( orig_img, PADDING, PADDING ); }
+    if(isCapturing) { image (cam, PADDING, PADDING); }
+    if(!isCapturing && showOrig) { image( orig_img, PADDING, PADDING ); }
     if(showBlobs) { drawBlobs(); }
     //image( opencv.image(OpenCV.GRAY), PADDING, PADDING ); // Grayscale image
 
@@ -133,13 +149,13 @@ void drawBlobs(){
  *   - nickel
  */
 void findBlobs(){
-  opencv.copy(img);
+  opencv.copy(isCapturing ? cam : img);
   opencv.threshold(0, 255, OpenCV.THRESH_TOZERO_INV | OpenCV.THRESH_OTSU);
   blobs = opencv.blobs( 100, w*h/3, 20, true );
   hand = findHandBlob(blobs);
   if(hand != null){
       // do an ROI thing
-      opencv.copy(img);
+      opencv.copy(isCapturing ? cam : img);
       opencv.ROI( hand.rectangle.x, hand.rectangle.y, hand.rectangle.width, hand.rectangle.height );
       opencv.threshold(0, 255, OpenCV.THRESH_TOZERO_INV | OpenCV.THRESH_OTSU);
       blobs = opencv.blobs( 100, w*h/3, 20, true );
@@ -187,9 +203,11 @@ Blob findNickelBlob(Blob[] blobs){
  *   - float nickel_diam_px = 0;
  */
 void getPixelsPerMM(){
-  Rectangle bounds = nickel.rectangle;
-  nickel_diam_px = (float) ((bounds.width > bounds.height) ? bounds.width : bounds.height);
-  mm_per_px = nickel_diam_mm / nickel_diam_px;
+  if(nickel != null){
+    Rectangle bounds = nickel.rectangle;
+    nickel_diam_px = (float) ((bounds.width > bounds.height) ? bounds.width : bounds.height);
+    mm_per_px = nickel_diam_mm / nickel_diam_px;
+  }
 }
 
 Line trimLineToHand(Line l){
@@ -302,6 +320,7 @@ Point findIntersection(Point p1, Point p2, Point p3, Point p4) {
 }  
 
 void drawBlob(Blob blob){
+        if(blob == null) { return; }
         Rectangle bounding_rect	= blob.rectangle;
         float area = blob.area;
         float perimeter = blob.length;
@@ -356,6 +375,13 @@ void keyPressed() {
       break;
     case 'b':
       showBlobs = showBlobs ? false : true;
+      break;
+    case ' ':
+      isCapturing = false;
+      img = new PImage(w,h);
+      img.copy(cam,0,0,w,h,0,0,w,h);
+      orig_img = new PImage(w,h);
+      orig_img.copy(cam,0,0,w,h,0,0,w,h);
       break;
   }
 }

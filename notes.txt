@@ -43,24 +43,13 @@ hand blob. So "`blob.isHole == true`".
 Now: [a wild github appears](https://github.com/martymcguire/NickelForScale)!!
 
 Things to do next
-
-* BRING THE CALIPERS
-    * And makerbot and tools
-    * and plastic
-* Method to get nickel blob
-* Method to get nickel size in pixels from nickel blob
-* Conversion method from pixels to mm
-* Clean up hand examples
-    * One dir per hand model
-    * Pictures of nickel-on-hand only
-    * Descriptor file of hand measurements
 * Find good models to parameterize
 * Come up with hand measurements we can parameterize
 * Come up with OpenSCAD params file format for export from Processing
 * Pipeline this motherfucker in Processing
     * Choose a thing you want to make
-    * Hand picture from webcam
-    * Get hand measurements and display them in a badass way
+    * Hand picture from webcam (done)
+    * Get hand measurements and display them in a badass way (done)
     * Export measurements for OpenSCAD
     * Invoke openscad to make STL
     * Show orig and custom STL side-by-side
