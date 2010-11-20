@@ -25,6 +25,9 @@ int w = 640;
 int h = 480;
 
 Capture cam;
+
+PrintWriter output;
+
 PFont font;
 
 float mm_per_px = 0;
@@ -63,6 +66,7 @@ void setup() {
     size( w+PADDING*2, h+INFO_H+PADDING*3 );
     font = loadFont( "SansSerif-18.vlw" );
     textFont( font, 18 );
+    
 }
 
 void draw() {
@@ -366,6 +370,28 @@ void drawBlob(Blob blob){
         */
 }
 
+////saving
+
+
+void writeMeasurements(){
+  //create output file
+  output = createWriter("data/current_measurements.scad");
+  
+  double measurement = 0.0;
+  
+  output.println("//All measurements in mm "); 
+
+  //write the data stored in lines 
+  int i = 1;
+  for(Line l : lines){
+    measurement = l.length() * mm_per_px;
+    println(l.length() * mm_per_px);
+    output.println("measurement_" + i + " = " + measurement + ";");
+    i++;
+  }
+  output.flush();  
+}
+
 ///// INTERACTIVITY!!!
 
 void keyPressed() {
@@ -388,6 +414,9 @@ void keyPressed() {
       orig_img = new PImage(w,h);
       orig_img.copy(cam,0,0,w,h,0,0,w,h);
       break;
+    case 'x':
+      writeMeasurements();
+    break;
   }
 }
 
