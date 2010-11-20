@@ -215,19 +215,24 @@ void getPixelsPerMM(){
 }
 
 Line trimLineToHand(Line l){
-  if((l == null) || (hand == null)){ return l; }
   
+  println("\n trimming line");
+  if((l == null) || (hand == null)){ return l; }
+
+  //hpts is an array of all points in the outline of the hand
   Point[] hpts = hand.points;
   if(hpts.length < 2){ return l; }
 
-  Point m1 = l.p1;
-  double m1d = 10000.0;
-  Point m2 = l.p2;
-  double m2d = 10000.0;
+  Point m1 = l.p2;
+  double m1d = l.length();
+  Point m2 = l.p1;
+  double m2d = l.length();
   Point p1 = hpts[0];
   Point p2 = hpts[1];
   for(int i = 1; i < hpts.length; i++){
     p2 = hpts[i];
+    //println("p1 " + p_to_s(p1) + " p2 " + p_to_s(p2));
+    //ix is the intersection of p1,p2 and a line's start and end points
     Point ix = findIntersection(p1,p2,l.p1,l.p2);
     if(ix != null){
       double ix1d = l.p1.distance(ix);
@@ -240,16 +245,19 @@ Line trimLineToHand(Line l){
         m2 = ix; m2d = ix2d; 
         println("Moving towards P2: " + p_to_s(ix) + " " + l_to_s(l));
       }
+
     }
     p1 = hpts[i];
   }
   return new Line(m1,m2);
 }
 
+//convert a point to a string
 String p_to_s(Point p){
   return "(" + p.x +"," + p.y + ")";
 }
 
+//convert a line to a string
 String l_to_s(Line l){
   return "[" + p_to_s(l.p1) + "," + p_to_s(l.p2) + "]";
 }
@@ -408,11 +416,18 @@ void keyPressed() {
       }
       break;
     case ' ':
-      isCapturing = false;
-      img = new PImage(w,h);
-      img.copy(cam,0,0,w,h,0,0,w,h);
-      orig_img = new PImage(w,h);
-      orig_img.copy(cam,0,0,w,h,0,0,w,h);
+      if(isCapturing){
+        isCapturing = false;
+        img = new PImage(w,h);
+        img.copy(cam,0,0,w,h,0,0,w,h);
+        orig_img = new PImage(w,h);
+        orig_img.copy(cam,0,0,w,h,0,0,w,h);
+      }
+      else{
+       //turn video back on and clear any lines that were drawn
+       isCapturing = true; 
+       lines = new ArrayList<Line>();
+      }
       break;
     case 'x':
       writeMeasurements();
@@ -442,7 +457,7 @@ void mouseReleased(){
     le.y -= PADDING;
     Line l = new Line(ls,le);
     Line trimmed = trimLineToHand(l);
-    if( (trimmed != null) && !(trimmed.equals(l)) && (trimmed.length() > 0) ){
+    if( (trimmed != null) && !(trimmed.equals(l)) && (trimmed.length() > 5) ){
       lines.add(trimmed);
     }
   }
