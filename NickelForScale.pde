@@ -1,5 +1,6 @@
 import hypermedia.video.*;
 import java.awt.*;
+import java.util.*;
 import processing.video.*;
 
 ///// UI sizes
@@ -10,6 +11,11 @@ int TEXT_H = 20;
 ///// UI STATE
 boolean showOrig = true;
 boolean showBlobs = true;
+boolean isDrawing = false;
+// line drawing
+Point ls = new Point();
+Point le = new Point();
+ArrayList<Line> lines = new ArrayList<Line>();
 
 OpenCV opencv;
 PImage img;
@@ -19,7 +25,7 @@ int h = 480;
 
 PFont font;
 
-float px_per_mm = 0;
+float mm_per_px = 0;
 float nickel_diam_mm = 21.21;
 float nickel_diam_px = 0;
 
@@ -59,15 +65,50 @@ void draw() {
     //image( opencv.image(OpenCV.GRAY), PADDING, PADDING ); // Grayscale image
 
     drawInfo();
+    
+    // Draw Lines
+    pushMatrix();
+    translate(PADDING,PADDING);
+    for(Line l : lines){
+      stroke(230, 230, 250);
+      strokeWeight(2);
+      drawLine(l);
+      strokeWeight(1);
+    }
+    popMatrix();
+    
+    // Draw current line, if any
+    if(isDrawing){
+      stroke(255,255,255);
+      strokeWeight(2);
+      line(ls.x,ls.y,le.x,le.y);
+      strokeWeight(1);
+    }
+}
+
+void drawLine(Line l){
+  line(l.p1.x, l.p1.y, l.p2.x, l.p2.y);
+  Point r = (l.p1.x > l.p2.x) ? l.p1 : l.p2;
+  noStroke();
+  String lbl = String.format("%.02fmm", l.length() * mm_per_px);
+  fill(0,0,0);
+  text(lbl, r.x+1, r.y + TEXT_H+1);
+  fill(255,255,255);
+  text(lbl, r.x, r.y + TEXT_H);
 }
 
 void drawInfo(){
   pushMatrix();
   translate(PADDING, PADDING*2+h);
-  color(255,255,255);
-  text("PX/MM: " + px_per_mm, 0, TEXT_H);
+  fill(255,255,255);
+  text("MM/PX: " + mm_per_px, 0, TEXT_H);
+  if(lines.size() > 0){
+    Line l = lines.get(lines.size()-1);
+    text("Last Length: " + (l.length() * mm_per_px), 0, TEXT_H*2.2);
+  }
   popMatrix(); 
 }
+
 void drawBlobs(){
     noFill();
     pushMatrix();
@@ -134,7 +175,7 @@ Blob findNickelBlob(Blob[] blobs){
 
 /**
  * Using the nickel blob, find the diameter of it in pixels and use that to set
- * px_per_mm for the image.
+ * mm_per_px for the image.
  *
  * Uses larger of blob bounding box width and height.
  *
@@ -142,14 +183,123 @@ Blob findNickelBlob(Blob[] blobs){
  *   - Blob nickel
  *   - float nickel_diam_mm
  * Sets globals
- *   - float px_per_mm = 0;
+ *   - float mm_per_px = 0;
  *   - float nickel_diam_px = 0;
  */
 void getPixelsPerMM(){
   Rectangle bounds = nickel.rectangle;
   nickel_diam_px = (float) ((bounds.width > bounds.height) ? bounds.width : bounds.height);
-  px_per_mm = nickel_diam_px / nickel_diam_mm;
+  mm_per_px = nickel_diam_mm / nickel_diam_px;
 }
+
+Line trimLineToHand(Line l){
+  if((l == null) || (hand == null)){ return l; }
+  
+  Point[] hpts = hand.points;
+  if(hpts.length < 2){ return l; }
+
+  Point m1 = l.p1;
+  double m1d = 10000.0;
+  Point m2 = l.p2;
+  double m2d = 10000.0;
+  Point p1 = hpts[0];
+  Point p2 = hpts[1];
+  for(int i = 1; i < hpts.length; i++){
+    p2 = hpts[i];
+    Point ix = findIntersection(p1,p2,l.p1,l.p2);
+    if(ix != null){
+      double ix1d = l.p1.distance(ix);
+      double ix2d = l.p2.distance(ix);
+      if(ix1d < m1d) {
+        m1 = ix; m1d = ix1d;
+        println("Moving towards P1: " + p_to_s(ix) + " " + l_to_s(l));
+      }
+      if(ix2d < m2d) {
+        m2 = ix; m2d = ix2d; 
+        println("Moving towards P2: " + p_to_s(ix) + " " + l_to_s(l));
+      }
+    }
+    p1 = hpts[i];
+  }
+  return new Line(m1,m2);
+}
+
+String p_to_s(Point p){
+  return "(" + p.x +"," + p.y + ")";
+}
+
+String l_to_s(Line l){
+  return "[" + p_to_s(l.p1) + "," + p_to_s(l.p2) + "]";
+}
+
+// calculates intersection and checks for parallel lines.  
+// also checks that the intersection point is actually on  
+// the line segment p1-p2  
+Point findIntersection(Point p1, Point p2, Point p3, Point p4) {
+  float xD1,yD1,xD2,yD2,xD3,yD3;  
+  float dot,deg,len1,len2;  
+  float segmentLen1,segmentLen2;  
+  float ua,ub,div;  
+  
+  // calculate differences  
+  xD1=p2.x-p1.x;  
+  xD2=p4.x-p3.x;  
+  yD1=p2.y-p1.y;  
+  yD2=p4.y-p3.y;  
+  xD3=p1.x-p3.x;  
+  yD3=p1.y-p3.y;    
+  
+  // calculate the lengths of the two lines  
+  len1=sqrt(xD1*xD1+yD1*yD1);  
+  len2=sqrt(xD2*xD2+yD2*yD2);  
+  
+  // calculate angle between the two lines.  
+  dot=(xD1*xD2+yD1*yD2); // dot product  
+  deg=dot/(len1*len2);  
+  
+  // if abs(angle)==1 then the lines are parallell,  
+  // so no intersection is possible  
+  if(abs(deg)==1) return null;  
+  
+  // find intersection Pt between two lines  
+  Point pt=new Point(0,0);  
+  div=yD2*xD1-xD2*yD1;  
+  ua=(xD2*yD3-yD2*xD3)/div;  
+  ub=(xD1*yD3-yD1*xD3)/div;  
+  pt.x=p1.x+(int)(ua*xD1);
+  pt.y=p1.y+(int)(ua*yD1);
+  
+  // calculate the combined length of the two segments  
+  // between Pt-p1 and Pt-p2  
+  xD1=pt.x-p1.x;  
+  xD2=pt.x-p2.x;  
+  yD1=pt.y-p1.y;  
+  yD2=pt.y-p2.y;  
+  segmentLen1=sqrt(xD1*xD1+yD1*yD1)+sqrt(xD2*xD2+yD2*yD2);  
+  
+  // calculate the combined length of the two segments  
+  // between Pt-p3 and Pt-p4  
+  xD1=pt.x-p3.x;  
+  xD2=pt.x-p4.x;  
+  yD1=pt.y-p3.y;  
+  yD2=pt.y-p4.y;  
+  segmentLen2=sqrt(xD1*xD1+yD1*yD1)+sqrt(xD2*xD2+yD2*yD2);  
+  
+  // if the lengths of both sets of segments are the same as  
+  // the lenghts of the two lines the point is actually  
+  // on the line segment.  
+  
+  // if the point isn't on the line, return null  
+  if(abs(len1-segmentLen1)>0.01 || abs(len2-segmentLen2)>0.01)  
+    return null;  
+  
+  // if we got a NaN, return null
+  if(Float.isNaN(pt.x) || Float.isNaN(pt.y))
+    return null;
+    
+  // return the valid intersection  
+  return pt;  
+}  
 
 void drawBlob(Blob blob){
         Rectangle bounding_rect	= blob.rectangle;
@@ -168,10 +318,10 @@ void drawBlob(Blob blob){
         stroke(0,0,255);
         line( centroid.x-5, centroid.y, centroid.x+5, centroid.y );
         line( centroid.x, centroid.y-5, centroid.x, centroid.y+5 );
-        noStroke();
-        fill(0,0,255);
-        text( area,centroid.x+5, centroid.y+5 );
-
+        
+        //noStroke();
+        //fill(0,0,255);
+        //text( area,centroid.x+5, centroid.y+5 );
 
         fill(255,0,255,64);
         if(blob.isHole){
@@ -186,6 +336,7 @@ void drawBlob(Blob blob){
             endShape(CLOSE);
         }
 
+        /*
         noStroke();
         fill(255,0,255);
         text( perimeter, centroid.x+5, centroid.y+5+TEXT_H );
@@ -193,7 +344,10 @@ void drawBlob(Blob blob){
         // area : perimeter ratio
         fill(0,255,0);
         text( area / perimeter, centroid.x+5, centroid.y+5+(TEXT_H*2) );
+        */
 }
+
+///// INTERACTIVITY!!!
 
 void keyPressed() {
   switch(key){
@@ -206,9 +360,35 @@ void keyPressed() {
   }
 }
 
-void mouseDragged() {
+void mousePressed() {
+  isDrawing = true;
+  ls.x = mouseX;
+  ls.y = mouseY;
+  le.x = ls.x;
+  le.y = ls.y;
 }
 
+void mouseDragged() {
+  le.x = mouseX;
+  le.y = mouseY;
+}
+
+void mouseReleased(){
+  if(isDrawing){
+    isDrawing = false;
+    ls.x -= PADDING;
+    ls.y -= PADDING;
+    le.x -= PADDING;
+    le.y -= PADDING;
+    Line l = new Line(ls,le);
+    Line trimmed = trimLineToHand(l);
+    if( (trimmed != null) && !(trimmed.equals(l)) && (trimmed.length() > 0) ){
+      lines.add(trimmed);
+    }
+  }
+}
+
+///// CLEAN UP
 public void stop() {
     opencv.stop();
     super.stop();
