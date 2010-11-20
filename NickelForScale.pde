@@ -2,6 +2,15 @@ import hypermedia.video.*;
 import java.awt.*;
 import processing.video.*;
 
+///// UI sizes
+int PADDING = 10;
+int INFO_H = 300;
+int TEXT_H = 20;
+
+///// UI STATE
+boolean showOrig = true;
+boolean showBlobs = true;
+
 OpenCV opencv;
 PImage img;
 PImage orig_img;
@@ -32,7 +41,7 @@ void setup() {
 
     setupOpenCV("amy-tests/1nickel-hand-C-naturalLight-1.jpg");
 
-    size( w*2+30, h*2+30 );
+    size( w+PADDING*2, h+INFO_H+PADDING*3 );
     font = loadFont( "SansSerif-18.vlw" );
     textFont( font, 18 );
 }
@@ -45,11 +54,24 @@ void draw() {
 
     background(0);
 
-    image( orig_img, 10, 10 );
-    image( opencv.image(OpenCV.GRAY), 20+w, 10 ); // absolute difference image
+    if(showOrig) { image( orig_img, PADDING, PADDING ); }
+    if(showBlobs) { drawBlobs(); }
+    //image( opencv.image(OpenCV.GRAY), PADDING, PADDING ); // Grayscale image
+
+    drawInfo();
+}
+
+void drawInfo(){
+  pushMatrix();
+  translate(PADDING, PADDING*2+h);
+  color(255,255,255);
+  text("PX/MM: " + px_per_mm, 0, TEXT_H);
+  popMatrix(); 
+}
+void drawBlobs(){
     noFill();
     pushMatrix();
-    translate(20+w,10);
+    translate(PADDING,PADDING);
 
     if(hand != null){
       for( int i=0; i<blobs.length; i++ ){
@@ -57,8 +79,7 @@ void draw() {
       }
     }
 
-    popMatrix();
-
+    popMatrix();  
 }
 
 /**
@@ -167,14 +188,22 @@ void drawBlob(Blob blob){
 
         noStroke();
         fill(255,0,255);
-        text( perimeter, centroid.x+5, centroid.y+25 );
+        text( perimeter, centroid.x+5, centroid.y+5+TEXT_H );
 
         // area : perimeter ratio
         fill(0,255,0);
-        text( area / perimeter, centroid.x+5, centroid.y+45 );
+        text( area / perimeter, centroid.x+5, centroid.y+5+(TEXT_H*2) );
 }
 
 void keyPressed() {
+  switch(key){
+    case 'o':
+      showOrig = showOrig ? false : true;
+      break;
+    case 'b':
+      showBlobs = showBlobs ? false : true;
+      break;
+  }
 }
 
 void mouseDragged() {
