@@ -80,8 +80,8 @@ void draw() {
 Blob findHandBlob(Blob[] blobs){
     for( int i=0; i<blobs.length; i++ ) {
         float area = blobs[i].area;
-        float circumference = blobs[i].length;
-        float a_c_ratio = area / circumference;
+        float perimeter = blobs[i].length;
+        float a_c_ratio = area / perimeter;
         if(a_c_ratio > 20.0) { return blobs[i]; }
     }
     return null;
@@ -91,10 +91,10 @@ void drawBlob(Blob blob){
 
         Rectangle bounding_rect	= blob.rectangle;
         float area = blob.area;
-        float circumference = blob.length;
+        float perimeter = blob.length;
         Point centroid = blob.centroid;
         Point[] points = blob.points;
-        float a_c_ratio = area / circumference;
+        float a_c_ratio = area / perimeter;
         
         // rectangle
         noFill();
@@ -126,11 +126,11 @@ void drawBlob(Blob blob){
 
         noStroke();
         fill(255,0,255);
-        text( circumference, centroid.x+5, centroid.y+25 );
+        text( perimeter, centroid.x+5, centroid.y+25 );
         
-        // area : circumference ratio
+        // area : perimeter ratio
         fill(0,255,0);
-        text( area / circumference, centroid.x+5, centroid.y+45 );
+        text( area / perimeter, centroid.x+5, centroid.y+45 );
         
         
 }
