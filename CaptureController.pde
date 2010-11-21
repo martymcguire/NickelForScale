@@ -141,15 +141,15 @@ class CaptureController extends UIController{
     String name = theEvent.controller().name();
     if(name.equals("<< Back")){
       lines = new ArrayList<Line>();
-      changeController(controllers.get("object_chooser"));
       controlP5.remove("<< Back");
       controlP5.remove(" Continue >>");
+      changeController(controllers.get("object_chooser"));
     }
     if(name.equals(" Continue >>")){
       writeMeasurements();
       controlP5.remove("<< Back");
       controlP5.remove(" Continue >>");
-      //changeController(controllers.get("render"));
+      changeController(controllers.get("render"));
     }
   }
   

@@ -6,7 +6,7 @@ height = 5000; // 1 cm
 thickness = 2000; // thickness of material
 
 // units in micro-meters (um)
-module fancy_ring(){
+module bhat_ring(){
 
   outer_diam = inner_diam + thickness*2;
 
@@ -35,4 +35,4 @@ module hat() {
   }
 }
 
-scale(0.001) fancy_ring();
+scale(0.001) bhat_ring();

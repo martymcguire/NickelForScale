@@ -4,7 +4,6 @@ import unlekker.geom.*;
 ArrayList<FaceList> stls;
 ArrayList<String> names;
 int curr_model = 1;
-int deg = 0;
 
 ControlFont cfont;
 
