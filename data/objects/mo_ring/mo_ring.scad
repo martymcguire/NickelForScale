@@ -10,7 +10,7 @@ include <../../current_measurements.scad>
 
 inner_diam = measurement_1;
 height = 3; // 1 cm
-thickness = 2; // thickness of material
+thickness = 2.9; // thickness of material
 
 outer_diam = inner_diam + thickness * 2;
 
@@ -34,12 +34,17 @@ l5 = 15;
 //scale([0.8,0.8,0.4]){  // uncomment for MoSmall.stl or uncomment and change scale for other size
 	
 	union(){
-		scale([0.3,0.3,0.3]){
-		mirror()
-			HalfMo();
+       difference(){
+         union(){
+		    scale([0.4,0.4,0.4]){
+  		      mirror()
+			    HalfMo();
 	
-		HalfMo();
-}
+ 		      HalfMo();
+           }
+         }
+         translate([-15,0,5]) cube([30,30,50]);
+       }
 	translate([0,-0.45*inner_diam,0]){
 			difference() {
 			cylinder(r= outer_diam/2,h=height);

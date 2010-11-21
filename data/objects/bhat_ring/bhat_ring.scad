@@ -3,7 +3,7 @@ include <../../current_measurements.scad>
 // scale mm measurement from config
 inner_diam = 1000 * measurement_1;
 height = 5000; // 1 cm
-thickness = 2000; // thickness of material
+thickness = 2900; // thickness of material
 
 // units in micro-meters (um)
 module bhat_ring(){
@@ -27,7 +27,7 @@ module hat() {
   rim_r = 0.18;
   translate([-hat_w/2,0,0]){
     union(){
-      cube([hat_w,hat_h/6,height]);
+      cube([hat_w,hat_h/5,height]);
       translate([hat_w*rim_r,0,0]){
         cube([hat_w*(1-2*rim_r),hat_h,height]);
       }
