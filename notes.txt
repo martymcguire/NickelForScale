@@ -69,3 +69,44 @@ OpenSCAD Party
         * `<object-name>/`
             * `<object-name>.scad`
             * `<object-name>.stl` - example render
+            * `measurements.txt` - labels (1 per line) of needed measurements
+
+### Calling OpenSCAD w/ processing...
+
+* Use `exec(String[])`
+  * One arg per string.
+  * Absolute paths.
+  * Example:
+
+         File scad_file = new File("/Users/rmcguire/Documents/Processing/RunOpenSCAD/data/objects/plain_ring/plain_ring.scad");
+         File stl_file = new File("/Users/rmcguire/Documents/Processing/RunOpenSCAD/data/plain_ring.stl");
+         String[] exec = {"/usr/bin/open","/Applications/OpenSCAD.app","--args",
+                           "-s",
+                           stl_file.getAbsolutePath(),
+                           scad_file.getAbsolutePath()
+                           };
+
+         println(exec);
+         exec(exec);
+
+---
+
+Badass Model Chooser
+--------------------
+
+* List all dirs in `objects/`.
+* Load up `objects/<objName>/<objName>.stl` w/ [unlekkerlib](http://workshop.evolutionzone.com/unlekkerlib/)
+    * CRITICAL MISS - OpenSCAD outputs ASCII STL, unlekker requires binary!
+    * Perl to the rescue? [CAD::Format::STL](http://search.cpan.org/~ewilhelm/CAD-Format-STL-v0.2.1/lib/CAD/Format/STL.pm)
+        * YES!
+
+                #!/usr/bin/env perl
+                require CAD::Format::STL;
+
+                if($#ARGV != 1){
+                  print "Usage: stl_ascii_to_bin.pl <INFILE> <OUTFILE>";
+                  exit;
+                }
+
+                my $stl = CAD::Format::STL->new->load($ARGV[0]);
+                $stl->save(binary => $ARGV[1]);
