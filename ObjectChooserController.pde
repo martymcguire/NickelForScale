@@ -105,10 +105,11 @@ class ObjectChooserController extends UIController {
   
   void moveOn(){
     modelName = names.get(curr_model);
-    changeController(controllers.get("capture"));
+
     controlP5.remove(" Continue >>");
     controlP5.remove("<");
     controlP5.remove(">");
+    changeController(controllers.get("capture"));
   }
   
   String name_to_readable(String name){
