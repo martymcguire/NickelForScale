@@ -2,15 +2,19 @@ import hypermedia.video.*;
 import java.awt.*;
 import java.util.*;
 import processing.video.*;
+import controlP5.*;
+import processing.opengl.*;
 
 PApplet app;
+ControlP5 controlP5;
 
 ///// UI sizes
 int PADDING = 10;
-int INFO_H = 300;
 int TEXT_H = 20;
+int INFO_H = 200;
 
 ///// UI STATE
+String modelName = null;
 boolean showOrig = true;
 boolean showBlobs = true;
 boolean isDrawing = false;
@@ -41,13 +45,20 @@ Blob hand;
 Blob nickel;
 
 UIController controller;
+HashMap<String,UIController> controllers = new HashMap<String,UIController>();
 void setup() {
   app = this;
-  size( w+PADDING*2, h+INFO_H+PADDING*3 );
-  font = loadFont( "SansSerif-18.vlw" );
-  textFont( font, 18 );
-  controller = new CaptureController();
+  font = createFont( "SansSerif", 20 );
+  textFont( font, 20 );
+  size( w+PADDING*2, h+INFO_H+PADDING*3, P3D );
+  frame.setResizable(true);
+  controlP5 = new ControlP5(this);
+  controllers.put("object_chooser", new ObjectChooserController());
+  controllers.put("capture", new CaptureController());
+  //controller = new CaptureController();
+  controller = controllers.get("object_chooser");
   controller.setup();
+  controller.takeControl();
 }
 
 void draw() {
@@ -70,6 +81,17 @@ void mouseDragged() {
 
 void mouseReleased(){
   controller.mouseReleased();
+}
+
+
+public void controlEvent(ControlEvent theEvent) {
+  controller.controlEvent(theEvent);
+}
+
+public void changeController(UIController ctrlr){
+  if(!ctrlr.isInitialized()){ ctrlr.setup(); }
+  controller = ctrlr;
+  controller.takeControl();
 }
 
 ///// CLEAN UP
