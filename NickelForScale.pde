@@ -51,7 +51,7 @@ void setup() {
   font = createFont( "SansSerif", 20 );
   textFont( font, 20 );
   size( w+PADDING*2, h+INFO_H+PADDING*3, P3D );
-  frame.setResizable(true);
+  //frame.setResizable(true);
   controlP5 = new ControlP5(this);
   controllers.put("object_chooser", new ObjectChooserController());
   controllers.put("capture", new CaptureController());

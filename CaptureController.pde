@@ -3,6 +3,7 @@ class CaptureController extends UIController{
   ArrayList<String> measureLabels;
   Controller cont_btn;
   
+  int instructionsFontSize = 5;
   public void setup(){
     measureLabels = new ArrayList<String>();
     setupOpenCVcamera();
@@ -18,19 +19,23 @@ class CaptureController extends UIController{
     for(int i = 0; i < lbls.length; i++){
       measureLabels.add(lbls[i]);
     }
-    frame.setSize(w+PADDING*2, h+INFO_H+PADDING*3+50);
+    //frame.setSize(w+PADDING*2, h+INFO_H+PADDING*3+50);
     
-    controlP5.addButton("<< Back",0, 20, h+INFO_H, 160, 35);
+    //controlP5.addButton("<< Back",0, 20, h+INFO_H, 160, 35);
+    controlP5.addButton("<< Back",0, 20, h+(INFO_H)-40, 220, 45);
     controlP5.Label lbl = controlP5.controller("<< Back").captionLabel();
-    lbl.setControlFont(cfont);
-    lbl.setControlFontSize(20);
-    controlP5.addButton(" Continue >>",1, w-180, h+INFO_H, 160, 35);
+    lbl.setControlFont(continueFont);
+    lbl.setControlFontSize(30);
+    
+    //controlP5.addButton(" Continue >>",1, w-180, h+INFO_H, 160, 35);
+    controlP5.addButton(" Continue >>",0, width - 220, h+(INFO_H)-40, 220, 45);
     cont_btn = controlP5.controller(" Continue >>");
     lbl = cont_btn.captionLabel();
-    lbl.setControlFont(cfont);
-    lbl.setControlFontSize(20);
+    lbl.setControlFont(continueFont);
+    lbl.setControlFontSize(30);
     cont_btn.hide();
     isCapturing = true;
+    
   }
   
   public void draw(){
@@ -141,9 +146,10 @@ class CaptureController extends UIController{
     String name = theEvent.controller().name();
     if(name.equals("<< Back")){
       lines = new ArrayList<Line>();
-      changeController(controllers.get("object_chooser"));
+      
       controlP5.remove("<< Back");
       controlP5.remove(" Continue >>");
+      changeController(controllers.get("object_chooser"));
     }
     if(name.equals(" Continue >>")){
       writeMeasurements();
@@ -156,7 +162,7 @@ class CaptureController extends UIController{
   void setupOpenCVcamera(){
      String[] devices = Capture.list();
      println(Capture.list());
-     cam = new Capture(app, w, h, devices[5]);
+     cam = new Capture(app, w, h, devices[2]);
      opencv = new OpenCV( app );
      opencv.allocate(w,h);
   }
@@ -178,17 +184,21 @@ class CaptureController extends UIController{
     fill(255,255,255);
     /* text("MM/PX: " + mm_per_px, 0, TEXT_H); */
     if(isCapturing){
-      text("Place your hand on the paper with a nickel on top.", 0, TEXT_H);
-      text("Press [SPACE BAR] when your hand and the nickel are found.",0, TEXT_H*2.2);
+      textFont(createFont("SansSerif",25));
+      text("Place your hand on the paper with a nickel on top.", PADDING, TEXT_H+5);
+      text("Press [SPACE BAR] when we find your hand and the ",PADDING, (TEXT_H + 30)+(PADDING*2));
+      text("the nickel turn purple (they have been found).",PADDING, (TEXT_H + 60)+(PADDING*2));
+  
     } else {
       int txtLines = 1;
       for(int i = 0; i < measureLabels.size(); i++){
-        String measurement = "[MEASURE ME NOW!]";
+        String measurement = "[measure finger you want ring to fit]";
         if((lines.size() > i) && (lines.get(i) != null)){
           measurement = "" 
                         + String.format("%.03f",lines.get(i).length() * mm_per_px)
                         + "mm";
         }
+        textFont(createFont("SansSerif",25));
         text(measureLabels.get(i) + ": " + measurement, 0, TEXT_H*(txtLines + .2));
       }
     }
