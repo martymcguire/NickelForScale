@@ -1,4 +1,4 @@
- 		Friday, Nov. 19, 2010
+Friday, Nov. 19, 2010
 =====================
 
 * [Set up camera](http://camura.com/s/D73) and [macam](http://webcam-osx.sourceforge.net/)
@@ -78,16 +78,17 @@ OpenSCAD Party
   * Absolute paths.
   * Example:
 
-         File scad_file = new File("/Users/rmcguire/Documents/Processing/RunOpenSCAD/data/objects/plain_ring/plain_ring.scad");
-         File stl_file = new File("/Users/rmcguire/Documents/Processing/RunOpenSCAD/data/plain_ring.stl");
-         String[] exec = {"/usr/bin/open","/Applications/OpenSCAD.app","--args",
-                           "-s",
-                           stl_file.getAbsolutePath(),
-                           scad_file.getAbsolutePath()
-                           };
+			File scad_file = new File("/Users/rmcguire/Documents/Processing/RunOpenSCAD/data/objects/plain_ring/plain_ring.scad");
+			File stl_file = new File("/Users/rmcguire/Documents/Processing/RunOpenSCAD/data/plain_ring.stl");
+			String[] exec = {
+				"/usr/bin/open","/Applications/OpenSCAD.app","--args",
+				"-s",
+				stl_file.getAbsolutePath(),
+				scad_file.getAbsolutePath()
+			};
 
-         println(exec);
-         exec(exec);
+			println(exec);
+			exec(exec);
 
 ---
 
